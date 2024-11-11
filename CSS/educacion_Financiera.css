@@ -1,0 +1,57 @@
+.financial-education-content {
+    max-width: 1000px;
+    margin: auto;
+    padding: 20px;
+}
+
+.financial-education-content h2 {
+    text-align: center;
+    font-size: 2.5em;
+    font-family: 'Georgia', serif;
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+
+.content-wrapper {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+}
+
+.text-section {
+    flex: 2;
+}
+
+.text-section ul {
+    list-style-type: none;
+    padding: 0;
+    font-size: 1.1em;
+    line-height: 1.6;
+}
+
+.text-section li {
+    margin-bottom: 15px;
+}
+
+.text-section li strong {
+    font-weight: bold;
+    font-size: 1.2em;
+}
+
+.images-section {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    flex: 1;
+}
+
+.image-placeholder {
+    background-color: #d3d3d3;
+    width: 200px;
+    height: 150px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: #333;
+}

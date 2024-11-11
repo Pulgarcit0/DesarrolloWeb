@@ -1,0 +1,120 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+header {
+    background-color: #357a46;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+    color: white;
+}
+
+header .logo {
+    display: flex;
+    align-items: center;
+    font-weight: bold;
+}
+
+header .logo .icon {
+    width: 60px;
+    margin-right: 5px;
+}
+
+.auth-buttons {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.auth-buttons a {
+    color: white;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+.auth-buttons .login {
+    background-color: #f0f0f0;
+    color: #357a46;
+    padding: 5px 15px;
+    border-radius: 20px;
+}
+
+.intro-section {
+    display: flex;
+    flex: 1;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-around;
+    padding: 20px;
+    gap: 20px;
+    text-align: left;
+}
+
+.text-content {
+    max-width: 400px;
+}
+
+.text-content h1 {
+    font-size: 2em;
+    margin-bottom: 15px;
+    font-family: 'Arial', sans-serif;
+}
+
+.text-content p {
+    font-size: 1.1em;
+    line-height: 1.5;
+}
+
+.image-content .placeholder {
+    background-color: #d3d3d3;
+    width: 300px;
+    height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2em;
+    color: #333;
+}
+
+footer {
+    background-color: #f0f0f0;
+    padding: 10px 20px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+footer a {
+    font-size: 1em;
+    margin-bottom: 10px;
+    padding-top: 10px;
+    text-decoration: none;
+    color: black;
+}
+
+.social-icons {
+    display: flex;
+    gap: 10px;
+}
+
+@media (max-width: 768px) {
+    .intro-section {
+        flex-direction: column;
+    }
+
+    .image-content .placeholder {
+        width: 80%;
+    }
+}

@@ -1,0 +1,131 @@
+header {
+    position: relative;
+    z-index: 1;
+}
+
+.menu-dropdown {
+    display: none;
+    position: absolute;
+    top: 100%;
+    right: 0;
+    width: 250px;
+    height: calc(100vh - 70px);
+    background-color: #357a46;
+    padding: 15px;
+    border-radius: 0 0 5px 5px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    color: white;
+    z-index: 0;
+}
+
+.menu-dropdown .user-icon {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 15px;
+}
+
+.menu-dropdown ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    font-size: 1.1em;
+}
+
+.menu-dropdown li {
+    margin: 15px 0;
+}
+
+.menu-dropdown li a {
+    color: white;
+    text-decoration: none;
+    font-weight: bold;
+}
+/*subcatecogrias
+
+ */
+.subcategory-list {
+    list-style: none;
+    padding: 0;
+    margin: 15px 0;
+}
+
+.subcategory-list li {
+    margin: 10px 0;
+}
+
+.subcategory-list li a {
+    color: white;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.subcategory-list li a.selected {
+    background-color: #4CAF50; /* Color de selección */
+    padding: 5px;
+    border-radius: 5px;
+}
+
+.category-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+.subcategory.selected::after {
+    content: "✔"; /* Palomita */
+    color: green;
+    font-weight: bold;
+    margin-left: 8px;
+}
+
+/*finaciero
+
+ */
+
+
+#reportSubmenu {
+    color: white;
+}
+
+#reportSubmenu h4 {
+    font-size: 1.2em;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+#reportSubmenu label {
+    font-weight: bold;
+    margin-top: 10px;
+}
+
+#generateReportBtn {
+    width: 100%;
+    font-weight: bold;
+}
+
+/*notificaciones
+ */
+.notification-icon {
+    position: relative;
+    display: inline-block;
+}
+
+.notification-count {
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    background-color: white;
+    color: red;
+    font-weight: bold;
+    border-radius: 50%;
+    padding: 2px 6px;
+    font-size: 12px;
+    display: inline-block;
+    min-width: 20px;
+    text-align: center;
+}
+#exitReportMenu {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+}
