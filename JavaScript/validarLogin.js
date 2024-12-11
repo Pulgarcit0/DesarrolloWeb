@@ -7,7 +7,7 @@ function validateForm() {
     }
     
     // Redirigir a dashboard.html si la validación es exitosa
-    window.location.href = "Principal.html";
+    window.location.href = "Principal.php";
 
     return false; // Evita el envío del formulario
 }

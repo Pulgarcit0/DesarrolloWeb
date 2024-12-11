@@ -73,47 +73,134 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['accion'])) {
     }
 
     // Generar reporte financiero
-    if ($accion === 'generar_reporte') {
+    if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['accion']) && $_POST['accion'] === 'generar_reporte') {
         $fechaInicio = $_POST['fecha_inicio'];
         $fechaFin = $_POST['fecha_fin'];
+        $nombreUsuario = 'Usuario Logueado'; // Reemplaza con el nombre del usuario logueado (obtén de sesión o BD)
 
         try {
+            // Consulta para obtener datos
             $stmtReporte = $conn->prepare("
-                SELECT p.fecha_pago, p.monto_pagado, tdg.nombre_tipo AS categoria
-                FROM Pagos p
-                INNER JOIN Tipos_De_Gasto tdg ON p.id_tipo_gasto = tdg.id_tipo_gasto
-                WHERE p.fecha_pago BETWEEN ? AND ?
-                ORDER BY p.fecha_pago ASC
-            ");
+            SELECT p.fecha_pago, p.monto_pagado, tdg.nombre_tipo AS categoria, 
+                   CASE 
+                       WHEN p.monto_pagado > 0 THEN 'Gasto' 
+                       ELSE 'Ingreso' 
+                   END AS tipo
+            FROM Pagos p
+            INNER JOIN Tipos_De_Gasto tdg ON p.id_tipo_gasto = tdg.id_tipo_gasto
+            WHERE p.fecha_pago BETWEEN ? AND ?
+            ORDER BY p.fecha_pago ASC
+        ");
             $stmtReporte->execute([$fechaInicio, $fechaFin]);
             $reportData = $stmtReporte->fetchAll(PDO::FETCH_ASSOC);
 
+            // Calcular totales
+            $totalGastos = 0;
+            $totalIngresos = 0;
+            foreach ($reportData as $row) {
+                if ($row['tipo'] === 'Gasto') {
+                    $totalGastos += $row['monto_pagado'];
+                } else {
+                    $totalIngresos += abs($row['monto_pagado']);
+                }
+            }
+
+            // Guardar reporte en el historial
+            try {
+                $stmtGuardarReporte = $conn->prepare("
+                INSERT INTO Historial_Reportes (usuario, fecha_inicio, fecha_fin, total_gastos, total_ingresos, balance_neto)
+                VALUES (?, ?, ?, ?, ?, ?)
+            ");
+                $balanceNeto = $totalIngresos - $totalGastos;
+                $stmtGuardarReporte->execute([
+                    $nombreUsuario,
+                    $fechaInicio,
+                    $fechaFin,
+                    $totalGastos,
+                    $totalIngresos,
+                    $balanceNeto
+                ]);
+            } catch (PDOException $e) {
+                die("Error al guardar el historial del reporte: " . $e->getMessage());
+            }
+
+            // Generar PDF
             require_once('../fpdf/fpdf.php');
             ob_end_clean();
 
             $pdf = new FPDF();
             $pdf->AddPage();
+
+            // Encabezado
             $pdf->SetFont('Arial', 'B', 16);
             $pdf->Cell(0, 10, 'Reporte Financiero', 0, 1, 'C');
             $pdf->SetFont('Arial', '', 12);
+            $pdf->Cell(0, 10, 'Generado por: ' . $nombreUsuario, 0, 1, 'C');
             $pdf->Cell(0, 10, 'Desde: ' . $fechaInicio . ' Hasta: ' . $fechaFin, 0, 1, 'C');
             $pdf->Ln(10);
 
+            // Sección de Gastos
+            $pdf->SetFont('Arial', 'B', 14);
+            $pdf->Cell(0, 10, 'Gastos', 0, 1);
             $pdf->SetFont('Arial', 'B', 12);
             $pdf->Cell(40, 10, 'Fecha', 1);
             $pdf->Cell(70, 10, 'Categoría', 1);
-            $pdf->Cell(40, 10, 'Monto', 1);
+            $pdf->Cell(40, 10, 'Monto', 1, 0, 'R');
             $pdf->Ln();
 
             $pdf->SetFont('Arial', '', 12);
             foreach ($reportData as $row) {
-                $pdf->Cell(40, 10, $row['fecha_pago'], 1);
-                $pdf->Cell(70, 10, $row['categoria'], 1);
-                $pdf->Cell(40, 10, $row['monto_pagado'], 1, 0, 'R');
-                $pdf->Ln();
+                if ($row['tipo'] === 'Gasto') {
+                    $pdf->Cell(40, 10, $row['fecha_pago'], 1);
+                    $pdf->Cell(70, 10, $row['categoria'], 1);
+                    $pdf->Cell(40, 10, number_format($row['monto_pagado'], 2), 1, 0, 'R');
+                    $pdf->Ln();
+                }
             }
+            $pdf->SetFont('Arial', 'B', 12);
+            $pdf->Cell(110, 10, 'Total Gastos', 1);
+            $pdf->Cell(40, 10, number_format($totalGastos, 2), 1, 0, 'R');
+            $pdf->Ln(20);
+
+            // Sección de Ingresos
+            $pdf->SetFont('Arial', 'B', 14);
+            $pdf->Cell(0, 10, 'Ingresos', 0, 1);
+            $pdf->SetFont('Arial', 'B', 12);
+            $pdf->Cell(40, 10, 'Fecha', 1);
+            $pdf->Cell(70, 10, 'Categoría', 1);
+            $pdf->Cell(40, 10, 'Monto', 1, 0, 'R');
+            $pdf->Ln();
+
+            $pdf->SetFont('Arial', '', 12);
+            foreach ($reportData as $row) {
+                if ($row['tipo'] === 'Ingreso') {
+                    $pdf->Cell(40, 10, $row['fecha_pago'], 1);
+                    $pdf->Cell(70, 10, $row['categoria'], 1);
+                    $pdf->Cell(40, 10, number_format(abs($row['monto_pagado']), 2), 1, 0, 'R');
+                    $pdf->Ln();
+                }
+            }
+            $pdf->SetFont('Arial', 'B', 12);
+            $pdf->Cell(110, 10, 'Total Ingresos', 1);
+            $pdf->Cell(40, 10, number_format($totalIngresos, 2), 1, 0, 'R');
+            $pdf->Ln(20);
+
+            // Resumen Final
+            $pdf->SetFont('Arial', 'B', 14);
+            $pdf->Cell(0, 10, 'Resumen Financiero', 0, 1);
+            $pdf->SetFont('Arial', '', 12);
+            $pdf->Cell(110, 10, 'Total Gastos:', 1);
+            $pdf->Cell(40, 10, number_format($totalGastos, 2), 1, 0, 'R');
+            $pdf->Ln();
+            $pdf->Cell(110, 10, 'Total Ingresos:', 1);
+            $pdf->Cell(40, 10, number_format($totalIngresos, 2), 1, 0, 'R');
+            $pdf->Ln();
+            $pdf->Cell(110, 10, 'Balance Neto:', 1);
+            $pdf->Cell(40, 10, number_format($totalIngresos - $totalGastos, 2), 1, 0, 'R');
+            $pdf->Ln();
 
             $pdf->Output('I', 'Reporte_Financiero.pdf');
+
             exit();
         } catch (PDOException $e) {
             die("Error al generar el reporte financiero: " . $e->getMessage());
@@ -328,6 +415,8 @@ $valuesIngresos = array_map('abs', array_column($dataIngresos, 'total'));
     </div>
 </div>
 
+
+
 <!-- Modal para Agregar Ingreso -->
 <div class="modal fade" id="modalIngreso" tabindex="-1" aria-labelledby="modalIngresoLabel" aria-hidden="true">
     <div class="modal-dialog">
@@ -362,40 +451,56 @@ $valuesIngresos = array_map('abs', array_column($dataIngresos, 'total'));
 </div>
 
 <script>
-    const labelsGastos = <?= json_encode($labelsGastos); ?>;
-    const dataGastos = <?= json_encode($valuesGastos); ?>;
-    const labelsIngresos = <?= json_encode($labelsIngresos); ?>;
-    const dataIngresos = <?= json_encode($valuesIngresos); ?>;
-
-    new Chart(document.getElementById('gastosChart').getContext('2d'), {
+    const gastosChart = new Chart(document.getElementById('gastosChart').getContext('2d'), {
         type: 'bar',
-        data: {
-            labels: labelsGastos,
-            datasets: [{
-                label: 'Monto ($)',
-                data: dataGastos,
-                backgroundColor: 'rgba(220, 53, 69, 0.5)',
-                borderColor: 'rgba(220, 53, 69, 1)',
-                borderWidth: 1
-            }]
-        },
+        data: { labels: [], datasets: [{ label: 'Monto ($)', data: [], backgroundColor: 'rgba(220, 53, 69, 0.5)', borderColor: 'rgba(220, 53, 69, 1)', borderWidth: 1 }] },
         options: { responsive: true, scales: { y: { beginAtZero: true } } }
     });
 
-    new Chart(document.getElementById('ingresosChart').getContext('2d'), {
+    const ingresosChart = new Chart(document.getElementById('ingresosChart').getContext('2d'), {
         type: 'bar',
-        data: {
-            labels: labelsIngresos,
-            datasets: [{
-                label: 'Monto ($)',
-                data: dataIngresos,
-                backgroundColor: 'rgba(40, 167, 69, 0.5)',
-                borderColor: 'rgba(40, 167, 69, 1)',
-                borderWidth: 1
-            }]
-        },
+        data: { labels: [], datasets: [{ label: 'Monto ($)', data: [], backgroundColor: 'rgba(40, 167, 69, 0.5)', borderColor: 'rgba(40, 167, 69, 1)', borderWidth: 1 }] },
         options: { responsive: true, scales: { y: { beginAtZero: true } } }
+    });
+
+    function updateCharts() {
+        fetch('get_chart_data.php')
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    console.error(data.error);
+                    return;
+                }
+
+                // Actualizar datos de gastos
+                const gastosLabels = data.gastos.map(gasto => gasto.categoria);
+                const gastosValues = data.gastos.map(gasto => gasto.total);
+
+                gastosChart.data.labels = gastosLabels;
+                gastosChart.data.datasets[0].data = gastosValues;
+                gastosChart.update();
+
+                // Actualizar datos de ingresos
+                const ingresosLabels = data.ingresos.map(ingreso => ingreso.categoria);
+                const ingresosValues = data.ingresos.map(ingreso => Math.abs(ingreso.total));
+
+                ingresosChart.data.labels = ingresosLabels;
+                ingresosChart.data.datasets[0].data = ingresosValues;
+                ingresosChart.update();
+            })
+            .catch(error => console.error('Error al cargar los datos:', error));
+    }
+
+    // Cargar datos al inicio
+    updateCharts();
+
+    // Actualizar cada vez que sea necesario
+    document.querySelectorAll('form').forEach(form => {
+        form.addEventListener('submit', event => {
+            setTimeout(updateCharts, 500); // Esperar a que el servidor procese antes de actualizar
+        });
     });
 </script>
+
 </body>
 </html>

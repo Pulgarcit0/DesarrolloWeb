@@ -40,9 +40,7 @@ header {
     text-decoration: none;
     font-weight: bold;
 }
-/*subcatecogrias
 
- */
 .subcategory-list {
     list-style: none;
     padding: 0;
@@ -60,7 +58,7 @@ header {
 }
 
 .subcategory-list li a.selected {
-    background-color: #4CAF50; /* Color de selección */
+    background-color: #4CAF50;
     padding: 5px;
     border-radius: 5px;
 }
@@ -70,17 +68,6 @@ header {
     gap: 10px;
     margin-top: 15px;
 }
-.subcategory.selected::after {
-    content: "✔"; /* Palomita */
-    color: green;
-    font-weight: bold;
-    margin-left: 8px;
-}
-
-/*finaciero
-
- */
-
 
 #reportSubmenu {
     color: white;
@@ -101,31 +88,4 @@ header {
 #generateReportBtn {
     width: 100%;
     font-weight: bold;
-}
-
-/*notificaciones
- */
-.notification-icon {
-    position: relative;
-    display: inline-block;
-}
-
-.notification-count {
-    position: absolute;
-    top: -10px;
-    right: -10px;
-    background-color: white;
-    color: red;
-    font-weight: bold;
-    border-radius: 50%;
-    padding: 2px 6px;
-    font-size: 12px;
-    display: inline-block;
-    min-width: 20px;
-    text-align: center;
-}
-#exitReportMenu {
-    position: absolute;
-    top: 10px;
-    right: 10px;
 }
